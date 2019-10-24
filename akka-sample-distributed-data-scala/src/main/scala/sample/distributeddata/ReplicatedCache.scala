@@ -3,7 +3,6 @@ package sample.distributeddata
 import akka.actor.Actor
 import akka.actor.ActorRef
 import akka.actor.Props
-import akka.cluster.Cluster
 import akka.cluster.ddata.DistributedData
 import akka.cluster.ddata.LWWMap
 import akka.cluster.ddata.LWWMapKey
@@ -24,17 +23,17 @@ class ReplicatedCache extends Actor {
   import akka.cluster.ddata.Replicator._
   import ReplicatedCache._
 
-  val replicator = DistributedData(context.system).replicator
-  implicit val cluster = Cluster(context.system)
+  val ddata = DistributedData(context.system)
+  import ddata.{ replicator, selfUniqueAddress }
 
   def dataKey(entryKey: String): LWWMapKey[String, Any] =
     LWWMapKey("cache-" + math.abs(entryKey.hashCode) % 100)
 
   def receive = {
     case PutInCache(key, value) =>
-      replicator ! Update(dataKey(key), LWWMap(), WriteLocal)(_ + (key -> value))
+      replicator ! Update(dataKey(key), LWWMap(), WriteLocal)(_ :+ (key -> value))
     case Evict(key) =>
-      replicator ! Update(dataKey(key), LWWMap(), WriteLocal)(_ - key)
+      replicator ! Update(dataKey(key), LWWMap(), WriteLocal)(_.remove(selfUniqueAddress, key))
     case GetFromCache(key) =>
       replicator ! Get(dataKey(key), ReadLocal, Some(Request(key, sender())))
     case g @ GetSuccess(LWWMapKey(_), Some(Request(key, replyTo))) =>

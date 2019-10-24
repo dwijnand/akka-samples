@@ -15,8 +15,6 @@ import akka.cluster.ddata.Key
 import akka.cluster.ddata.ORSet
 
 object ServiceRegistry {
-  import akka.cluster.ddata.Replicator._
-
   val props: Props = Props[ServiceRegistry]
 
   /**
@@ -49,7 +47,8 @@ class ServiceRegistry extends Actor with ActorLogging {
   import akka.cluster.ddata.Replicator._
   import ServiceRegistry._
 
-  val replicator = DistributedData(context.system).replicator
+  val ddata = DistributedData(context.system)
+  import ddata.{ replicator, selfUniqueAddress }
   implicit val cluster = Cluster(context.system)
 
   var keys = Set.empty[ServiceKey]
@@ -76,7 +75,7 @@ class ServiceRegistry extends Actor with ActorLogging {
       if (!keys(dKey))
         replicator ! Update(AllServicesKey, GSet(), WriteLocal)(_ + dKey)
       // add the service
-      replicator ! Update(dKey, ORSet(), WriteLocal)(_ + service)
+      replicator ! Update(dKey, ORSet(), WriteLocal)(_ :+ service)
 
     case Lookup(name) =>
       sender() ! Bindings(name, services.getOrElse(name, Set.empty))
@@ -118,7 +117,7 @@ class ServiceRegistry extends Actor with ActorLogging {
       val names = services.collect { case (name, refs) if refs.contains(ref) => name }
       names.foreach { name =>
         log.debug("Service with name [{}] terminated: {}", name, ref)
-        replicator ! Update(serviceKey(name), ORSet(), WriteLocal)(_ - ref)
+        replicator ! Update(serviceKey(name), ORSet(), WriteLocal)(_.remove(ref))
       }
 
     case _: UpdateResponse[_] => // ok

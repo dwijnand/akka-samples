@@ -17,8 +17,6 @@ import akka.cluster.ddata.LWWMap
 import akka.cluster.ddata.LWWMapKey
 
 object ReplicatedMetrics {
-  import akka.cluster.ddata.Replicator._
-
   def props(measureInterval: FiniteDuration, cleanupInterval: FiniteDuration): Props =
     Props(new ReplicatedMetrics(measureInterval, cleanupInterval))
 
@@ -43,7 +41,8 @@ class ReplicatedMetrics(measureInterval: FiniteDuration, cleanupInterval: Finite
   import akka.cluster.ddata.Replicator._
   import ReplicatedMetrics._
 
-  val replicator = DistributedData(context.system).replicator
+  val ddata = DistributedData(context.system)
+  import ddata.{ replicator, selfUniqueAddress }
   implicit val cluster = Cluster(context.system)
   val node = nodeKey(cluster.selfAddress)
 
@@ -75,11 +74,11 @@ class ReplicatedMetrics(measureInterval: FiniteDuration, cleanupInterval: Finite
       val heap = memoryMBean.getHeapMemoryUsage
       val used = heap.getUsed
       val max = heap.getMax
-      replicator ! Update(UsedHeapKey, LWWMap.empty[String, Long], WriteLocal)(_ + (node -> used))
+      replicator ! Update(UsedHeapKey, LWWMap.empty[String, Long], WriteLocal)(_ :+ (node -> used))
       replicator ! Update(MaxHeapKey, LWWMap.empty[String, Long], WriteLocal) { data =>
         data.get(node) match {
           case Some(`max`) => data // unchanged
-          case _           => data + (node -> max)
+          case _           => data :+ (node -> max)
         }
       }
 
@@ -106,7 +105,7 @@ class ReplicatedMetrics(measureInterval: FiniteDuration, cleanupInterval: Finite
 
     case Cleanup =>
       def cleanupRemoved(data: LWWMap[String, Long]): LWWMap[String, Long] =
-        (data.entries.keySet -- nodesInCluster).foldLeft(data) { case (d, key) => d - key }
+        (data.entries.keySet -- nodesInCluster).foldLeft(data) { case (d, key) => d.remove(selfUniqueAddress, key) }
 
       replicator ! Update(UsedHeapKey, LWWMap.empty[String, Long], WriteLocal)(cleanupRemoved)
       replicator ! Update(MaxHeapKey, LWWMap.empty[String, Long], WriteLocal)(cleanupRemoved)
