@@ -13,6 +13,7 @@ import akka.cluster.ddata.GSet
 import akka.cluster.ddata.GSetKey
 import akka.cluster.ddata.Key
 import akka.cluster.ddata.ORSet
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 object ServiceRegistry {
   val props: Props = Props[ServiceRegistry]
@@ -37,7 +38,7 @@ object ServiceRegistry {
    */
   final case class BindingChanged(name: String, services: Set[ActorRef])
 
-  final case class ServiceKey(serviceName: String) extends Key[ORSet[ActorRef]](serviceName)
+  final case class ServiceKey @JsonCreator() (serviceName: String) extends Key[ORSet[ActorRef]](serviceName)
 
   private val AllServicesKey = GSetKey[ServiceKey]("service-keys")
 

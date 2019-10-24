@@ -23,6 +23,9 @@ object ServiceRegistrySpec extends MultiNodeConfig {
     akka.loglevel = INFO
     akka.actor.provider = "cluster"
     akka.log-dead-letters-during-shutdown = off
+    akka.actor.serialization-bindings {
+      "sample.distributeddata.ServiceRegistry$ServiceKey" = jackson-cbor
+    }
     """))
 
   class Service extends Actor {
