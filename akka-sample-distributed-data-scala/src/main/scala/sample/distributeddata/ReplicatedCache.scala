@@ -1,6 +1,7 @@
 package sample.distributeddata
 
 import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.ddata.LWWMap
 import akka.cluster.ddata.LWWMapKey
@@ -20,7 +21,7 @@ object ReplicatedCache {
       extends InternalCommand
   private case class InternalUpdateResponse(rsp: UpdateResponse[LWWMap[String, Any]]) extends InternalCommand
 
-  def apply() = Behaviors.setup[Command] { context =>
+  def apply(): Behavior[Command] = Behaviors.setup { context =>
     DistributedData.withReplicatorMessageAdapter[Command, LWWMap[String, Any]] { replicator =>
       implicit val node: SelfUniqueAddress = DistributedData(context.system).selfUniqueAddress
 
