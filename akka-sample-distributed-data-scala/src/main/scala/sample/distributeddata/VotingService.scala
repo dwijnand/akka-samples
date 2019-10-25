@@ -57,7 +57,7 @@ object VotingService {
         }
 
         def becomeOpen() = {
-          replicatorFlag.unsubscribe(OpenedKey)
+//          replicatorFlag.unsubscribe(OpenedKey)
           replicatorFlag.subscribe(ClosedKey, InternalSubscribeResponse.apply)
           Behaviors.receiveMessagePartial(open orElse getVotes(open = true))
         }
