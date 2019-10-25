@@ -19,7 +19,7 @@ val `akka-sample-distributed-data-scala` = project
       "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
       "com.typesafe.akka" %% "akka-cluster-typed" % akkaVersion,
       "com.typesafe.akka" %% "akka-distributed-data" % akkaVersion,
-      "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion,
+      "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion % Test,
       "com.typesafe.akka" %% "akka-serialization-jackson" % akkaVersion,
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
       "org.scalatest" %% "scalatest" % "3.0.7" % Test),
