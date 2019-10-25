@@ -26,7 +26,7 @@ object ReplicatedCache {
       implicit val node: SelfUniqueAddress = DistributedData(context.system).selfUniqueAddress
 
       def dataKey(entryKey: String): LWWMapKey[String, Any] =
-        LWWMapKey("cache-" + math.abs(entryKey.hashCode) % 100)
+        LWWMapKey("cache-" + math.abs(entryKey.hashCode % 100))
 
       Behaviors.receiveMessage[Command] {
         case PutInCache(key, value) =>
