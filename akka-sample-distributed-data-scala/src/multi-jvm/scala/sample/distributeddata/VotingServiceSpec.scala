@@ -33,11 +33,13 @@ class VotingServiceSpecMultiJvmNode3 extends VotingServiceSpec
 
 class VotingServiceSpec extends MultiNodeSpec(VotingServiceSpec) with STMultiNodeSpec {
   import VotingServiceSpec._
+  import VotingService._
 
   override def initialParticipants = roles.size
 
   implicit val typedSystem: ActorSystem[Nothing] = system.toTyped
   val cluster = Cluster(typedSystem)
+  val votingService = system.spawn(VotingService(), "votingService")
 
   def join(from: RoleName, to: RoleName): Unit = {
     runOn(from) {
@@ -62,8 +64,6 @@ class VotingServiceSpec extends MultiNodeSpec(VotingServiceSpec) with STMultiNod
     }
 
     "count votes correctly" in within(15.seconds) {
-      import VotingService._
-      val votingService = system.spawn(VotingService(), "votingService")
       val N = 1000
       runOn(node1) {
         votingService ! Open
