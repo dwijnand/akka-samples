@@ -77,10 +77,10 @@ object VotingService {
               askReplyTo => Update(ClosedKey, Flag(), WriteAll(5.seconds), askReplyTo)(_.switchOn),
               InternalUpdateResponse.apply)
 
-            Behaviors.receiveMessage(getVotes(open = false))
+            Behaviors.receiveMessagePartial(getVotes(open = false))
 
           case InternalSubscribeResponse(c @ Changed(ClosedKey)) if c.get(ClosedKey).enabled =>
-            Behaviors.receiveMessage(getVotes(open = false))
+            Behaviors.receiveMessagePartial(getVotes(open = false))
 
           case InternalSubscribeResponse(Changed(OpenedKey)) => Behaviors.same
         }
