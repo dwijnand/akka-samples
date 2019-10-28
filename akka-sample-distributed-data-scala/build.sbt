@@ -22,6 +22,7 @@ val `akka-sample-distributed-data-scala` = project
       "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion % Test,
       "com.typesafe.akka" %% "akka-serialization-jackson" % akkaVersion,
       "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
+      "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
       "org.scalatest" %% "scalatest" % "3.0.7" % Test),
     fork in run := true,
     // disable parallel tests
